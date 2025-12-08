@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 # 🌿 TABLE PLANT
 class Plant(models.Model):
@@ -138,3 +139,33 @@ class Commander(models.Model):
 
     def __str__(self):
         return f"{self.article} - {self.cde} ({self.date_Cde}) - {self.montant_Cde} - {self.quantite_Cde} - {self.fournisseur}"
+
+class ImportHistory(models.Model):
+    TYPE_CHOICES = [
+        ('ISE', 'ISE'),
+        ('DA', 'DA'),
+        ('AO', 'AO'),
+        ('CMD', 'Commande'),
+    ]
+    
+    STATUT_CHOICES = [
+        ('SUCCESS', 'Succès'),
+        ('PARTIAL', 'Partiel'),
+        ('ERROR', 'Erreur'),
+    ]
+    
+    type_fichier = models.CharField(max_length=10, choices=TYPE_CHOICES)
+    nom_fichier = models.CharField(max_length=255)
+    date_import = models.DateTimeField(default=timezone.now)
+    nb_lignes_traitees = models.IntegerField(default=0)
+    nb_erreurs = models.IntegerField(default=0)
+    statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='SUCCESS')
+    
+    
+    class Meta:
+        ordering = ['-date_import']
+        verbose_name = "Historique d'import"
+        verbose_name_plural = "Historiques d'imports"
+    
+    def __str__(self):
+        return f"{self.type_fichier} - {self.date_import.strftime('%d/%m/%Y %H:%M')}"

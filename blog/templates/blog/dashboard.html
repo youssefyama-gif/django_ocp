@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SupplyTrack - OCP</title>
+
+    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
-    
+
     <style>
         :root {
-            --primary-green: #009a44; /* Vert OCP */
+            --primary-green: #009a44;
             --bg-color: #f8f9fa;
             --sidebar-width: 260px;
             --text-dark: #333;
@@ -25,7 +27,7 @@
             min-height: 100vh;
         }
 
-        /* --- SIDEBAR (GAUCHE) --- */
+        /* Sidebar */
         .sidebar {
             width: var(--sidebar-width);
             background: white;
@@ -36,25 +38,6 @@
             height: 100%;
             padding: 20px;
         }
-
-        .logo-area {
-            display: flex;
-            align-items: center;
-            margin-bottom: 40px;
-        }
-
-        .ocp-icon {
-            background-color: var(--primary-green);
-            color: white;
-            font-weight: bold;
-            padding: 8px;
-            border-radius: 50%;
-            margin-right: 10px;
-            font-size: 14px;
-        }
-
-        .brand-name { font-weight: 700; font-size: 18px; color: var(--text-dark); }
-        .brand-sub { font-size: 12px; color: var(--text-grey); font-weight: 400; }
 
         .nav-links { list-style: none; flex-grow: 1; }
         
@@ -71,46 +54,24 @@
         }
 
         .nav-item span { margin-right: 12px; }
-
-        /* Style de l'élément actif (Vert) */
-        .nav-item.active {
-            background-color: var(--primary-green);
-            color: white;
-        }
-        
-        /* Effet survol pour les éléments non actifs */
+        .nav-item.active { background-color: var(--primary-green); color: white; }
         .nav-item:not(.active):hover {
             background-color: #f0f0f0;
             color: var(--primary-green);
         }
 
-        .logout {
-            margin-top: auto;
-            color: var(--text-dark);
-        }
+        .logout { margin-top: auto; }
 
-        /* --- MAIN CONTENT (DROITE) --- */
+        /* Main */
         .main-content {
             margin-left: var(--sidebar-width);
             flex-grow: 1;
             padding: 30px;
         }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 30px;
-        }
+        .header { display: flex; justify-content: space-between; margin-bottom: 30px; }
 
-        .user-info { text-align: right; }
-        .user-name { font-weight: 700; display: block; }
-        .user-role { font-size: 12px; color: var(--text-grey); }
-
-        .page-title h1 { font-size: 24px; font-weight: 600; margin-bottom: 5px; }
-        .breadcrumb { color: var(--text-grey); font-size: 14px; }
-
-        /* --- CARTES KPI (Top) --- */
+        /* KPI Cards */
         .kpi-container {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -125,7 +86,6 @@
             border: 1px solid var(--border-color);
             display: flex;
             align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
 
         .card-icon {
@@ -138,18 +98,12 @@
             margin-right: 15px;
         }
 
-        /* Couleurs spécifiques pour les icônes */
         .bg-green-light { background: #e6f4ea; color: var(--primary-green); }
         .bg-orange-light { background: #fff4e6; color: #ff9800; }
         .bg-purple-light { background: #f3e5f5; color: #9c27b0; }
         .bg-blue-light { background: #e3f2fd; color: #2196f3; }
 
-        .card-info h2 { font-size: 24px; font-weight: 700; }
-        .card-info p { font-size: 13px; color: var(--text-grey); }
-
-        /* --- LISTE DEMANDES RECENTES --- */
-        .section-title { font-size: 18px; font-weight: 600; margin-bottom: 15px; }
-
+        /* Liste */
         .recent-list {
             background: white;
             border-radius: 10px;
@@ -160,181 +114,95 @@
         .list-item {
             display: flex;
             justify-content: space-between;
-            align-items: center;
             padding: 20px;
             border-bottom: 1px solid #f0f0f0;
         }
-        .list-item:last-child { border-bottom: none; }
 
-        .item-left { display: flex; align-items: center; }
-        .item-icon {
-            background: #e6f4ea;
-            color: var(--primary-green);
-            padding: 10px;
-            border-radius: 8px;
-            margin-right: 15px;
-        }
+        .item-left { display: flex; }
+        .item-icon { padding: 10px; border-radius: 8px; background: #e6f4ea; color: var(--primary-green); margin-right: 15px; }
 
-        .item-details h4 { font-size: 14px; font-weight: 600; }
-        .item-details span { font-size: 12px; color: var(--text-grey); }
-        
         .badge {
             font-size: 11px;
             padding: 4px 8px;
             border-radius: 12px;
-            margin-left: 10px;
             background: #e6f4ea;
             color: var(--primary-green);
             font-weight: 600;
+            margin-left: 10px;
         }
 
-        .price { font-weight: 700; font-size: 14px; }
-
+        .price { font-weight: 700; }
     </style>
 </head>
 <body>
 
+    <!-- Sidebar -->
     <aside class="sidebar">
-        <div class="logo-area">
-            <div class="ocp-icon">OCP</div>
-            <div>
-                <div class="brand-name">SupplyTrack</div>
-                <div class="brand-sub">Suivi approvisionnement</div>
-            </div>
-        </div>
-
         <ul class="nav-links">
-            <li>
-                <a href="{% url 'dashboard' %}" class="nav-item active">
-                    <span class="material-icons-outlined">home</span>
-                    Page d'accueil
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'suivi_demandes' %}" class="nav-item">
-                    <span class="material-icons-outlined">inventory_2</span>
-                    Suivi des demandes
-                </a>
-            </li>
-            <li>
-                <a href="#" class="nav-item">
-                    <span class="material-icons-outlined">bar_chart</span>
-                    Analyses
-                </a>
-            </li>
-            <li>
-                <a href="#" class="nav-item">
-                    <span class="material-icons-outlined">settings</span>
-                    Paramètres
-                </a>
-            </li>
+            <li><a href="{% url 'dashboard' %}" class="nav-item active"><span class="material-icons-outlined">home</span>Page d'accueil</a></li>
+            <li><a href="{% url 'suivi_demandes' %}" class="nav-item"><span class="material-icons-outlined">inventory_2</span>Suivi des demandes</a></li>
+            <li><a href="#" class="nav-item"><span class="material-icons-outlined">bar_chart</span>Analyses</a></li>
+            <li><a href="{% url 'parametres' %}" class="nav-item"><span class="material-icons-outlined">settings</span>Paramètres</a></li>
         </ul>
-
-        <a href="#" class="nav-item logout">
-            <span class="material-icons-outlined">logout</span>
-            Déconnexion
-        </a>
+        <a href="#" class="nav-item logout"><span class="material-icons-outlined">logout</span>Déconnexion</a>
     </aside>
 
+    <!-- Main Content -->
     <main class="main-content">
         
         <header class="header">
-            <div class="page-title">
+            <div>
                 <h1>Tableau de bord</h1>
-                <p class="breadcrumb">Vue d'ensemble du suivi ISE → DA → AO → Commandes</p>
+                <p>Vue d'ensemble du suivi ISE → DA → AO → Commandes</p>
             </div>
+
             <div class="user-info">
-                <span class="user-name">M. Hajjad</span>
-                <span class="user-role">Responsable Approvisionnement</span>
+                <span class="user-name">{{ user_name }}</span><br>
+                <span class="user-role">{{ user_role }}</span>
             </div>
         </header>
 
+        <!-- KPI Section -->
         <div class="kpi-container">
             <div class="card">
-                <div class="card-icon bg-green-light">
-                    <span class="material-icons-outlined">description</span>
-                </div>
-                <div class="card-info">
-                    <h2>10</h2>
-                    <p>ISE créées</p>
-                </div>
+                <div class="card-icon bg-green-light"><span class="material-icons-outlined">description</span></div>
+                <div><h2>{{ total_ise }}</h2><p>ISE </p></div>
             </div>
             <div class="card">
-                <div class="card-icon bg-orange-light">
-                    <span class="material-icons-outlined">inventory</span>
-                </div>
-                <div class="card-info">
-                    <h2>8</h2>
-                    <p>DA validées</p>
-                </div>
+                <div class="card-icon bg-orange-light"><span class="material-icons-outlined">inventory</span></div>
+                <div><h2>{{ total_da }}</h2><p>DA </p></div>
             </div>
             <div class="card">
-                <div class="card-icon bg-purple-light">
-                    <span class="material-icons-outlined">trending_up</span>
-                </div>
-                <div class="card-info">
-                    <h2>5</h2>
-                    <p>AO lancés</p>
-                </div>
+                <div class="card-icon bg-purple-light"><span class="material-icons-outlined">trending_up</span></div>
+                <div><h2>{{ total_ao }}</h2><p>AO</p></div>
             </div>
             <div class="card">
-                <div class="card-icon bg-blue-light">
-                    <span class="material-icons-outlined">analytics</span>
-                </div>
-                <div class="card-info">
-                    <h2>5</h2>
-                    <p>Commandes</p>
-                </div>
+                <div class="card-icon bg-blue-light"><span class="material-icons-outlined">shopping_cart</span></div>
+                <div><h2>{{ total_cmd }}</h2><p>Commandes</p></div>
             </div>
         </div>
 
+        <!-- Liste demandes récentes -->
         <h3 class="section-title">Demandes récentes</h3>
+
         <div class="recent-list">
-            
+        {% for item in demandes_recentes %}
             <div class="list-item">
                 <div class="item-left">
                     <div class="item-icon"><span class="material-icons-outlined">description</span></div>
                     <div class="item-details">
-                        <h4>ISE 1832 <span class="badge">Finalisée</span></h4>
-                        <span>Plant KL01 • 05/06/2025</span>
+                        <h4>
+                            ISE {{ item.id_ise }}
+                            <span class="badge">{{ item.statut }}</span>
+                        </h4>
+                        <span>{{ item.plant_code }} • {{ item.date }}</span>
                     </div>
                 </div>
-                <div class="price">3 200 000,00 MAD</div>
+                <div class="price">{{ item.montant|floatformat:2 }} MAD</div>
             </div>
-
-            <div class="list-item">
-                <div class="item-left">
-                    <div class="item-icon"><span class="material-icons-outlined">description</span></div>
-                    <div class="item-details">
-                        <h4>ISE 1484 <span class="badge">Finalisée</span></h4>
-                        <span>Plant KM03 • 03/06/2025</span>
-                    </div>
-                </div>
-                <div class="price">1 043 460,00 MAD</div>
-            </div>
-
-            <div class="list-item">
-                <div class="item-left">
-                    <div class="item-icon"><span class="material-icons-outlined">description</span></div>
-                    <div class="item-details">
-                        <h4>ISE 761 <span class="badge">Finalisée</span></h4>
-                        <span>Plant KL02 • 05/06/2025</span>
-                    </div>
-                </div>
-                <div class="price">800 000,00 MAD</div>
-            </div>
-
-             <div class="list-item">
-                <div class="item-left">
-                    <div class="item-icon"><span class="material-icons-outlined">description</span></div>
-                    <div class="item-details">
-                        <h4>ISE 1733 <span class="badge">Finalisée</span></h4>
-                        <span>Plant YM01 • 03/06/2025</span>
-                    </div>
-                </div>
-                <div class="price">628 373,85 MAD</div>
-            </div>
-
+        {% empty %}
+            <p style="padding: 15px;">Aucune demande récente</p>
+        {% endfor %}
         </div>
 
     </main>

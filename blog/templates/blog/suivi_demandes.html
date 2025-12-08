@@ -18,10 +18,9 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-
         body { display: flex; background-color: var(--bg-color); min-height: 100vh; }
 
-        /* --- SIDEBAR (Même style que dashboard) --- */
+        /* SIDEBAR */
         .sidebar {
             width: var(--sidebar-width); background: white; display: flex; flex-direction: column;
             border-right: 1px solid var(--border-color); position: fixed; height: 100%; padding: 20px;
@@ -33,200 +32,171 @@
         .nav-links { list-style: none; flex-grow: 1; }
         .nav-item { display: flex; align-items: center; padding: 12px 15px; margin-bottom: 8px; border-radius: 8px; color: var(--text-grey); text-decoration: none; transition: 0.3s; font-weight: 500; }
         .nav-item span { margin-right: 12px; }
-        
-        /* État Actif pour cette page */
         .nav-item.active { background-color: #e6f4ea; color: var(--primary-green); font-weight: 600; }
         .nav-item:hover:not(.active) { background-color: #f0f0f0; }
         .logout { margin-top: auto; color: var(--text-dark); }
 
-        /* --- MAIN CONTENT --- */
+        /* MAIN CONTENT */
         .main-content { margin-left: var(--sidebar-width); flex-grow: 1; padding: 30px; width: calc(100% - var(--sidebar-width)); }
-        
         .page-header { margin-bottom: 30px; }
         .page-header h1 { font-size: 24px; font-weight: 700; margin-bottom: 5px; color: #1a1a1a; }
         .page-header p { color: var(--text-grey); font-size: 14px; }
 
-        /* --- CARDS GÉNÉRALES --- */
+        /* CARDS */
         .card-container {
             background: white; border: 1px solid var(--border-color); border-radius: 12px;
             padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         }
 
-        /* --- SECTION IMPORT --- */
+        /* IMPORT SECTION */
         .import-title { display: flex; align-items: center; font-weight: 600; margin-bottom: 15px; font-size: 16px; }
         .import-title span { margin-right: 10px; font-size: 20px; }
-        
         .import-buttons { display: flex; gap: 15px; flex-wrap: wrap; }
         .btn-import {
             background: #f5f5f5; border: none; padding: 10px 20px; border-radius: 8px;
             color: var(--text-dark); font-weight: 500; cursor: pointer; transition: 0.2s;
         }
         .btn-import:hover { background: #e0e0e0; }
+        .file-input { display: none; }
+        .btn-import.loading { opacity: 0.6; cursor: wait; pointer-events: none; }
         .format-info { font-size: 12px; color: #999; margin-top: 10px; display: block; }
 
-        /* --- SECTION RECHERCHE --- */
+        /* STATUS MESSAGE */
+        .status-message {
+            margin-top: 15px; padding: 12px 20px; border-radius: 8px; font-size: 14px;
+            display: none; animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .status-message.success {
+            background: #d4edda; color: #155724; border: 1px solid #c3e6cb; display: block;
+        }
+        .status-message.error {
+            background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; display: block;
+        }
+
+        /* MODAL HISTORIQUE */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); z-index: 10000; align-items: center; justify-content: center;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-content {
+            background: white; border-radius: 12px; width: 90%; max-width: 800px;
+            max-height: 80vh; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease;
+        }
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 25px; border-bottom: 1px solid #e0e0e0; background: #f8f9fa;
+        }
+        .modal-header h3 {
+            margin: 0; font-size: 18px; font-weight: 600; color: #333; display: flex; align-items: center;
+        }
+        .modal-close {
+            background: none; border: none; font-size: 32px; color: #999; cursor: pointer;
+            width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; transition: all 0.2s;
+        }
+        .modal-close:hover { background: #f0f0f0; color: #333; }
+        .modal-body { padding: 25px; max-height: calc(80vh - 80px); overflow-y: auto; }
+
+        /* TABLE HISTORIQUE - 4 COLONNES */
+        .history-table {
+            width: 100%; border-collapse: collapse; font-size: 14px;
+        }
+        .history-table thead {
+            background: #f8f9fa; position: sticky; top: 0; z-index: 10;
+        }
+        .history-table th {
+            padding: 15px 20px; text-align: left; font-weight: 600; color: #333;
+            border-bottom: 2px solid #e0e0e0; font-size: 13px; text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .history-table tbody tr {
+            border-bottom: 1px solid #f0f0f0; transition: background-color 0.2s;
+        }
+        .history-table tbody tr:hover { background-color: #f8f9fa; }
+        .history-table td {
+            padding: 15px 20px; color: #555;
+        }
+
+        /* BADGES */
+        .type-badge {
+            display: inline-block; padding: 4px 12px; border-radius: 4px;
+            font-size: 11px; font-weight: 600; background: #e6f4ea; color: #009a44;
+        }
+        .history-badge {
+            display: inline-block; padding: 4px 12px; border-radius: 12px;
+            font-size: 11px; font-weight: 600;
+        }
+        .history-badge.success { background: #d1fae5; color: #065f46; }
+        .history-badge.error { background: #fee2e2; color: #991b1b; }
+        .history-badge.partial { background: #fef3c7; color: #92400e; }
+
+        /* SEARCH SECTION */
         .search-label { display: block; font-weight: 600; margin-bottom: 15px; }
-        
-        /* Onglets (Buttons de type) */
         .type-selector { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         .type-btn {
             padding: 8px 25px; border-radius: 6px; border: 1px solid #ddd;
             background: white; cursor: pointer; font-weight: 500; color: var(--text-grey);
             transition: all 0.2s;
         }
-        
-        /* Style du bouton actif (Vert) */
         .type-btn.active {
             background-color: var(--primary-green); color: white; border-color: var(--primary-green);
         }
-
-        /* Barre de recherche */
         .search-group { display: flex; gap: 10px; margin-bottom: 20px; }
         .search-input {
             flex-grow: 1; padding: 12px 15px; border: 1px solid #ddd; border-radius: 6px;
             font-size: 14px; outline: none;
         }
         .search-input:focus { border-color: var(--primary-green); }
-        
         .btn-search {
             background-color: var(--primary-green); color: white; border: none;
-            padding: 0 30px; border-radius: 6px; font-weight: 600; cursor: pointer;
-            font-size: 14px;
+            padding: 0 30px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px;
         }
         .btn-search:hover { background-color: #007a36; }
 
-        /* Exemples */
-        .examples { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text-grey); flex-wrap: wrap; }
-        .pill { background: #f0f2f5; padding: 4px 10px; border-radius: 4px; color: #333; }
-
-        /* --- STYLES TABLEAU RÉSULTATS --- */
-        .result-area { 
-            margin-top: 30px; 
-        }
-
-        .result-area h3 {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-dark);
-            margin-bottom: 20px;
-        }
-
-        /* Wrapper pour le scroll horizontal */
+        /* RESULT TABLE */
+        .result-area { margin-top: 30px; }
+        .result-area h3 { font-size: 18px; font-weight: 600; color: var(--text-dark); margin-bottom: 20px; }
         .table-wrapper {
-            overflow-x: auto;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            margin-top: 15px;
+            overflow-x: auto; border-radius: 8px; border: 1px solid var(--border-color); margin-top: 15px;
         }
-
-        /* Styles pour tous les tableaux dans resultat */
         .result-area table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            font-size: 14px;
-            min-width: 1200px; /* Pour forcer le scroll si nécessaire */
+            width: 100%; border-collapse: collapse; background: white; font-size: 14px; min-width: 1200px;
         }
-
-        .result-area table thead {
-            background-color: #f8f9fa;
-            border-bottom: 2px solid var(--border-color);
-        }
-
+        .result-area table thead { background-color: #f8f9fa; border-bottom: 2px solid var(--border-color); }
         .result-area table th {
-            padding: 18px 24px;
-            text-align: left;
-            font-weight: 600;
-            color: var(--text-dark);
-            white-space: nowrap;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            padding: 18px 24px; text-align: left; font-weight: 600; color: var(--text-dark);
+            white-space: nowrap; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;
             border-bottom: 2px solid var(--border-color);
         }
-
-        .result-area table tbody tr {
-            border-bottom: 1px solid #f0f0f0;
-            transition: background-color 0.2s;
-        }
-
-        .result-area table tbody tr:hover {
-            background-color: #f8fdf9;
-        }
-
-        /* Ligne avec données vides */
-        .result-area table tbody tr:has(td:first-child:contains('-')) {
-            background-color: #fffbf5;
-        }
-
+        .result-area table tbody tr { border-bottom: 1px solid #f0f0f0; transition: background-color 0.2s; }
+        .result-area table tbody tr:hover { background-color: #f8fdf9; }
         .result-area table td {
-            padding: 20px 24px;
-            color: var(--text-dark);
-            vertical-align: middle;
-            font-size: 14px;
-            line-height: 1.5;
+            padding: 20px 24px; color: var(--text-dark); vertical-align: middle; font-size: 14px; line-height: 1.5;
         }
-
-        /* Cellules vides (tirets) */
-        .result-area table td:is(:contains('-'):not(:has(*))) {
-            color: #bbb;
-            text-align: center;
-        }
-
-        /* Mise en valeur des identifiants importants */
         .result-area table td:first-child,
         .result-area table td:nth-child(3) {
-            font-weight: 600;
-            color: var(--primary-green);
+            font-weight: 600; color: var(--primary-green);
         }
-
-        /* Badge pour PLANT */
-        .result-area table td:nth-child(8) {
-            font-weight: 600;
-        }
-
-        /* Style pour l'icône œil - dernière colonne */
-        .result-area table td:last-child {
-            text-align: center;
-            width: 80px;
-            padding: 20px 15px;
-        }
-
+        .result-area table td:last-child { text-align: center; width: 80px; padding: 20px 15px; }
         .eye-icon {
-            cursor: pointer;
-            color: var(--primary-green);
-            transition: all 0.2s;
-            font-size: 24px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            vertical-align: middle;
+            cursor: pointer; color: var(--primary-green); transition: all 0.2s; font-size: 24px;
+            display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;
         }
-
-        .eye-icon:hover {
-            color: #007a36;
-            transform: scale(1.15);
-        }
-
-        /* Header pour la colonne ACTION */
-        .result-area table th:last-child {
-            text-align: center;
-        }
-
-        /* Responsive */
-        @media (max-width: 1400px) {
-            .result-area table {
-                font-size: 13px;
-            }
-            .result-area table th,
-            .result-area table td {
-                padding: 16px 20px;
-            }
-        }
+        .eye-icon:hover { color: #007a36; transform: scale(1.15); }
     </style>
 </head>
-<body>
 
+<body>
     <aside class="sidebar">
         <div class="logo-area">
             <div class="ocp-icon">OCP</div>
@@ -236,24 +206,19 @@
             </div>
         </div>
         <ul class="nav-links">
-            <li>
-                <a href="{% url 'dashboard' %}" class="nav-item">
-                    <span class="material-icons-outlined">home</span> Page d'accueil
-                </a>
-            </li>
-            <li>
-                <a href="#" class="nav-item active">
-                    <span class="material-icons-outlined">inventory_2</span> Suivi des demandes
-                </a>
-            </li>
+            <li><a href="{% url 'dashboard' %}" class="nav-item">
+                <span class="material-icons-outlined">home</span> Page d'accueil
+            </a></li>
+            <li><a href="#" class="nav-item active">
+                <span class="material-icons-outlined">inventory_2</span> Suivi des demandes
+            </a></li>
             <li><a href="#" class="nav-item"><span class="material-icons-outlined">bar_chart</span> Analyses</a></li>
-            <li><a href="#" class="nav-item"><span class="material-icons-outlined">settings</span> Paramètres</a></li>
+            <li><a href="{% url 'parametres' %}" class="nav-item"><span class="material-icons-outlined">settings</span>Paramètres</a></li>
         </ul>
         <a href="#" class="nav-item logout"><span class="material-icons-outlined">logout</span> Déconnexion</a>
     </aside>
 
     <main class="main-content">
-        
         <div class="page-header">
             <h1>Suivi des demandes</h1>
             <p>Recherchez et tracez le flux complet ISE → DA → AO → Commande</p>
@@ -264,12 +229,47 @@
                 <span class="material-icons-outlined">upload_file</span> Importer fichier
             </div>
             <div class="import-buttons">
-                <button class="btn-import">Importer ISE</button>
-                <button class="btn-import">Importer DA</button>
-                <button class="btn-import">Importer AO</button>
-                <button class="btn-import">Importer CMD</button>
+                <input type="file" id="file-ise" class="file-input" accept=".xlsx,.xls">
+                <button class="btn-import" onclick="triggerFileInput('ise')">Importer ISE</button>
+
+                <input type="file" id="file-da" class="file-input" accept=".xlsx,.xls">
+                <button class="btn-import" onclick="triggerFileInput('da')">Importer DA</button>
+
+                <input type="file" id="file-ao" class="file-input" accept=".xlsx,.xls">
+                <button class="btn-import" onclick="triggerFileInput('ao')">Importer AO</button>
+
+                <input type="file" id="file-cmd" class="file-input" accept=".xlsx,.xls">
+                <button class="btn-import" onclick="triggerFileInput('cmd')">Importer CMD</button>
+
+                <button class="btn-import" style="background: #e3f2fd; color: #1976d2; font-weight: 600;" onclick="openHistoryModal()">
+                    <span class="material-icons-outlined" style="vertical-align: middle; margin-right: 5px; font-size: 18px;">history</span>
+                    Historique
+                </button>
             </div>
             <span class="format-info">Formats acceptés : .xlsx, .xls</span>
+            <div id="status-message" class="status-message"></div>
+        </div>
+
+        <!-- MODAL HISTORIQUE - 4 COLONNES -->
+        <div id="historyModal" class="modal-overlay" onclick="closeHistoryModal(event)">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <h3>
+                        <span class="material-icons-outlined" style="vertical-align: middle; margin-right: 8px;">history</span>
+                        Historique des imports
+                    </h3>
+                    <button class="modal-close" onclick="closeHistoryModal()">&times;</button>
+                </div>
+                
+                <div class="modal-body">
+                    <div id="historyContent">
+                        <div style="text-align: center; padding: 40px; color: #999;">
+                            <span class="material-icons-outlined" style="font-size: 48px; opacity: 0.3;">hourglass_empty</span>
+                            <p>Chargement...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="card-container">
@@ -279,9 +279,7 @@
 
             <form method="POST">
                 {% csrf_token %}
-                
                 <label class="search-label">Type d'identifiant</label>
-                
                 <div class="type-selector">
                     <div class="type-btn active" onclick="selectType('ISE')">ISE</div>
                     <div class="type-btn" onclick="selectType('DA')">DA</div>
@@ -290,54 +288,113 @@
                 </div>
 
                 <input type="hidden" name="type_doc" id="hidden_type" value="ISE">
-
                 <label class="search-label" id="label-id">Identifiant ISE</label>
                 <div class="search-group">
                     <input type="text" name="code_input" class="search-input" placeholder="Ex. 761" required>
                     <button type="submit" class="btn-search">Rechercher</button>
                 </div>
-
-                
             </form>
 
             {% if resultat %}
                 <div class="result-area">
                     <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
                     <h3>Résultat pour {{ type_rech }} : {{ code_rech }}</h3>
-                    <div class="table-wrapper">
-                        {{ resultat|safe }}
-                    </div>
+                    <div class="table-wrapper">{{ resultat|safe }}</div>
                 </div>
             {% endif %}
             
             {% if error %}
                 <p style="color: red; margin-top: 15px;">{{ error }}</p>
             {% endif %}
-
         </div>
-
     </main>
 
     <script>
-        function selectType(type) {
-            // ... (cette partie selectType ne change pas) ...
-            document.getElementById('hidden_type').value = type;
-            document.getElementById('label-id').innerText = 'Identifiant ' + type;
-            let buttons = document.querySelectorAll('.type-btn');
-            buttons.forEach(btn => btn.classList.remove('active'));
-            buttons.forEach(btn => {
-                if(btn.innerText === type) {
-                    btn.classList.add('active');
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
                 }
+            }
+            return cookieValue;
+        }
+
+        const csrftoken = getCookie('csrftoken');
+
+        function triggerFileInput(type) {
+            document.getElementById('file-' + type).click();
+        }
+
+        ['ise', 'da', 'ao', 'cmd'].forEach(type => {
+            document.getElementById('file-' + type).addEventListener('change', function(e) {
+                if (this.files.length > 0) {
+                    uploadFile(type, this.files[0]);
+                }
+            });
+        });
+
+        function uploadFile(type, file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const statusDiv = document.getElementById('status-message');
+            const buttons = document.querySelectorAll('.btn-import');
+            
+            statusDiv.textContent = `⏳ Import de ${type.toUpperCase()} en cours...`;
+            statusDiv.className = 'status-message';
+            statusDiv.style.display = 'block';
+            statusDiv.style.background = '#fff3cd';
+            statusDiv.style.color = '#856404';
+            statusDiv.style.border = '1px solid #ffeaa7';
+
+            buttons.forEach(btn => btn.classList.add('loading'));
+
+            fetch(`/import/${type}/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrftoken },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                buttons.forEach(btn => btn.classList.remove('loading'));
+
+                if (data.success) {
+                    statusDiv.textContent = data.message;
+                    statusDiv.className = 'status-message success';
+                } else {
+                    statusDiv.textContent = data.message;
+                    statusDiv.className = 'status-message error';
+                }
+
+                setTimeout(() => { statusDiv.style.display = 'none'; }, 5000);
+                document.getElementById('file-' + type).value = '';
+            })
+            .catch(error => {
+                buttons.forEach(btn => btn.classList.remove('loading'));
+                statusDiv.textContent = `❌ Erreur réseau : ${error.message}`;
+                statusDiv.className = 'status-message error';
+                setTimeout(() => { statusDiv.style.display = 'none'; }, 5000);
             });
         }
 
-        // --- C'EST ICI QUE TU DOIS CORRIGER ---
-       function viewDetails(element) {
-            // 1. On récupère la ligne du tableau
-            let row = element.closest('tr');
+        function selectType(type) {
+            document.getElementById('hidden_type').value = type;
+            document.getElementById('label-id').innerText = 'Identifiant ' + type;
+            document.querySelectorAll('.type-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if(btn.innerText === type) btn.classList.add('active');
+            });
+        }
 
-            // Petite fonction pour nettoyer les IDs
+        function viewDetails(element) {
+            let row = element.closest('tr');
+            
             function cleanId(val) {
                 val = val.trim();
                 if (!val || val === '-' || val === '' || val === 'N/A' || val === 'nan' || val === 'None') {
@@ -346,19 +403,15 @@
                 return val;
             }
             
-            // 2. On récupère les valeurs des colonnes.
-            // VERIFIE BIEN TES INDICES DE COLONNES (Cells[x])
             let codeArticle = cleanId(row.cells[0].innerText); 
             let idIse = cleanId(row.cells[2].innerText);
             let idDa = cleanId(row.cells[6].innerText); 
             let idAo = cleanId(row.cells[10].innerText); 
-            let idCmd = cleanId(row.cells[12].innerText); // Colonne 12 pour la Commande
+            let idCmd = cleanId(row.cells[12].innerText);
 
-            // 3. Redirection avec les 5 paramètres
-            // URL : /suivi/detail/ART/ISE/DA/AO/CMD/
             window.location.href = `/suivi/detail/${codeArticle}/${idIse}/${idDa}/${idAo}/${idCmd}/`; 
         }
-        // Ajouter l'icône œil automatiquement (Code identique, pas de changement nécessaire ici)
+
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() {
                 const table = document.querySelector('.result-area table');
@@ -379,7 +432,6 @@
                             actionCell.innerHTML = `
                                 <span class="material-icons-outlined eye-icon" 
                                     onclick="viewDetails(this)" 
-                                    style="cursor:pointer; color:#009a44; font-size:24px;"
                                     title="Voir les détails">
                                     visibility
                                 </span>`;
@@ -388,6 +440,76 @@
                     });
                 }
             }, 100);
+        });
+
+        // ✅ GESTION MODAL HISTORIQUE - 4 COLONNES
+        function openHistoryModal() {
+            document.getElementById('historyModal').classList.add('show');
+            loadHistory();
+        }
+
+        function closeHistoryModal(event) {
+            if (!event || event.target.id === 'historyModal') {
+                document.getElementById('historyModal').classList.remove('show');
+            }
+        }
+
+        function loadHistory() {
+            const contentDiv = document.getElementById('historyContent');
+            
+            contentDiv.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #999;">
+                    <span class="material-icons-outlined" style="font-size: 48px; opacity: 0.3;">hourglass_empty</span>
+                    <p>Chargement...</p>
+                </div>
+            `;
+            
+            fetch('/import/history/')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data.length > 0) {
+                        let html = '<table class="history-table"><thead><tr>';
+                        html += '<th>Type</th>';
+                        html += '<th>Fichier</th>';
+                        html += '<th>Date d\'import</th>';
+                        html += '<th>Statut</th>';
+                        html += '</tr></thead><tbody>';
+                        
+                        data.data.forEach(imp => {
+                            html += '<tr>';
+                            html += `<td><span class="type-badge">${imp.type_fichier}</span></td>`;
+                            html += `<td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${imp.nom_fichier}">${imp.nom_fichier}</td>`;
+                            html += `<td style="white-space: nowrap;">${imp.date_import}</td>`;
+                            
+                            let badgeClass = imp.statut === 'SUCCESS' ? 'success' : (imp.statut === 'ERROR' ? 'error' : 'partial');
+                            let badgeText = imp.statut === 'SUCCESS' ? 'Succès' : (imp.statut === 'ERROR' ? 'Erreur' : 'Partiel');
+                            html += `<td><span class="history-badge ${badgeClass}">${badgeText}</span></td>`;
+                            html += '</tr>';
+                        });
+                        
+                        html += '</tbody></table>';
+                        contentDiv.innerHTML = html;
+                    } else {
+                        contentDiv.innerHTML = `
+                            <div style="text-align: center; padding: 40px; color: #999;">
+                                <span class="material-icons-outlined" style="font-size: 48px; opacity: 0.3;">inbox</span>
+                                <p>Aucun historique d'import</p>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    contentDiv.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #ef4444;">
+                            <span class="material-icons-outlined" style="font-size: 48px; opacity: 0.3;">error</span>
+                            <p>Erreur de chargement : ${error.message}</p>
+                        </div>
+                    `;
+                });
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeHistoryModal();
         });
     </script>
 </body>
