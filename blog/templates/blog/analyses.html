@@ -1,0 +1,633 @@
+
+{% load static %}
+
+{% block content %}
+<style>
+/* analyses.css intégré */
+.analyses-container {
+    padding: 2rem;
+    background-color: #f9fafb;
+    min-height: 100vh;
+}
+
+.analyses-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.5rem;
+}
+
+.subtitle {
+    color: #6b7280;
+    font-size: 1rem;
+}
+
+/* Filtre de dates */
+.date-filter-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.date-filter-form {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-group label {
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+.filter-group input[type="date"] {
+    padding: 0.625rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    min-width: 200px;
+}
+
+.btn-filter {
+    padding: 0.625rem 2rem;
+    background-color: #10b981;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-filter:hover {
+    background-color: #059669;
+}
+
+/* Pipeline Section */
+.pipeline-section {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.pipeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.pipeline-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.taux-final {
+    padding: 0.5rem 1rem;
+    background-color: #f0fdf4;
+    border-radius: 8px;
+    color: #166534;
+    font-size: 0.875rem;
+}
+
+.taux-final strong {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #15803d;
+}
+
+/* Pipeline Cards */
+.pipeline-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.pipeline-card {
+    position: relative;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 2px solid;
+}
+
+.card-ise {
+    background-color: #f0fdf4;
+    border-color: #4ade80;
+}
+
+.card-da {
+    background-color: #fff7ed;
+    border-color: #fb923c;
+}
+
+.card-ao {
+    background-color: #faf5ff;
+    border-color: #a78bfa;
+}
+
+.card-commandes {
+    background-color: #eff6ff;
+    border-color: #60a5fa;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.card-title {
+    font-weight: 600;
+    color: #374151;
+}
+
+.card-badge {
+    padding: 0.25rem 0.625rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: white;
+}
+
+.badge-ise { background-color: #fb923c; }
+.badge-da { background-color: #a78bfa; }
+.badge-ao { background-color: #a78bfa; }
+.badge-commandes { background-color: #60a5fa; }
+
+.card-number {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.card-amount {
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.arrow-right {
+    position: absolute;
+    right: -0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.5rem;
+    color: #9ca3af;
+}
+
+.card-commandes .arrow-right {
+    display: none;
+}
+
+/* Chart Container */
+.chart-container {
+    margin-top: 2rem;
+    height: 300px;
+}
+
+/* Bottom Section */
+.bottom-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.budget-section, .fournisseurs-section {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.budget-section h2, .fournisseurs-section h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 1.5rem;
+}
+
+/* Budget Cards */
+.budget-card {
+    padding: 1.25rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.budget-ise {
+    background-color: #f0fdf4;
+    border-left: 4px solid #4ade80;
+}
+
+.budget-commandes {
+    background-color: #eff6ff;
+    border-left: 4px solid #60a5fa;
+}
+
+.budget-ecart {
+    background-color: #fef2f2;
+    border-left: 4px solid #ef4444;
+}
+
+.budget-label {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: 0.5rem;
+}
+
+.budget-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.ecart-value {
+    color: #dc2626;
+}
+
+.budget-percentage {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+.montants-chart {
+    margin-top: 2rem;
+    height: 250px;       /* C'est ici qu'on force la "petitesse" */
+    width: 100%;         /* Il prendra toute la largeur disponible de sa colonne */
+    position: relative;  /* Recommandé pour Chart.js */
+}
+
+.montants-chart h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+/* Table Fournisseurs */
+.fournisseurs-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.fournisseurs-table thead {
+    background-color: #f9fafb;
+}
+
+.fournisseurs-table th {
+    padding: 0.75rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.fournisseurs-table td {
+    padding: 1rem 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+    color: #374151;
+}
+
+.part-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.part-bar {
+    height: 8px;
+    background-color: #60a5fa;
+    border-radius: 4px;
+    min-width: 2px;
+}
+
+.part-container span {
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .pipeline-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .bottom-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .pipeline-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .date-filter-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filter-group input[type="date"] {
+        min-width: 100%;
+    }
+}
+</style>
+
+<div class="analyses-container">
+    <div class="analyses-header">
+        <h1>Analyses</h1>
+        <p class="subtitle">Pipeline de conversion et indicateurs de performance</p>
+    </div>
+
+    <!-- Filtre de dates -->
+    <div class="date-filter-card">
+        <form method="GET" action="{% url 'analyses' %}" class="date-filter-form">
+            <div class="filter-group">
+                <label for="date_debut">Date de début</label>
+                <input type="date" id="date_debut" name="date_debut" value="{{ date_debut }}" required>
+            </div>
+            <div class="filter-group">
+                <label for="date_fin">Date de fin</label>
+                <input type="date" id="date_fin" name="date_fin" value="{{ date_fin }}" required>
+            </div>
+            <button type="submit" class="btn-filter">Filtrer</button>
+        </form>
+    </div>
+
+    <!-- Pipeline de conversion -->
+    <div class="pipeline-section">
+        <div class="pipeline-header">
+            <h2>Pipeline de conversion ISE → DA → AO → Commande</h2>
+            
+            </div>
+        </div>
+
+        <div class="pipeline-cards">
+            <!-- ISE Card -->
+            <div class="pipeline-card card-ise">
+                <div class="card-header">
+                    <span class="card-title">ISE</span>
+                    
+                </div>
+                <div class="card-number">{{ ise_count }}</div>
+                <div class="card-amount">{{ ise_montant|floatformat:1 }}M MAD</div>
+                <div class="arrow-right">→</div>
+            </div>
+
+            <!-- DA Card -->
+            <div class="pipeline-card card-da">
+                <div class="card-header">
+                    <span class="card-title">DA</span>
+                    
+                </div>
+                <div class="card-number">{{ da_count }}</div>
+                <div class="card-amount">{{ da_montant|floatformat:1 }}M MAD</div>
+                <div class="arrow-right">→</div>
+            </div>
+
+            <!-- AO Card -->
+            <div class="pipeline-card card-ao">
+                <div class="card-header">
+                    <span class="card-title">AO</span>
+                   
+                </div>
+                <div class="card-number">{{ ao_count }}</div>
+                <div class="arrow-right">→</div>
+            </div>
+
+            <!-- Commandes Card -->
+            <div class="pipeline-card card-commandes">
+                <div class="card-header">
+                    <span class="card-title">Commandes</span>
+
+                </div>
+                <div class="card-number">{{ commandes_count }}</div>
+                <div class="card-amount">{{ commandes_montant|floatformat:1 }}M MAD</div>
+            </div>
+        </div>
+
+        <!-- Graphique à barres -->
+        <div class="chart-container">
+            <canvas id="pipelineChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Section Budget et Top Fournisseurs -->
+    <div class="bottom-section">
+        <div class="budget-section">
+            <h2>Comparaison Budget ISE vs Commandes</h2>
+            
+            <div class="budget-card budget-ise">
+                <div class="budget-label">Budget total ISE</div>
+                <div class="budget-value">{{ budget_ise|floatformat:2 }} MAD</div>
+            </div>
+
+            <div class="budget-card budget-commandes">
+                <div class="budget-label">Montant total Commandes</div>
+                <div class="budget-value">{{ montant_commandes|floatformat:2 }} MAD</div>
+            </div>
+
+            <div class="budget-card budget-ecart">
+                <div class="budget-label">Écart (Commande - ISE)</div>
+                <div class="budget-value ecart-value">
+                    {% if ecart >= 0 %}+{% endif %}{{ ecart|floatformat:2 }} MAD 📈
+                </div>
+                <div class="budget-percentage">{% if ecart_pourcentage >= 0 %}+{% endif %}{{ ecart_pourcentage }}% par rapport au budget initial</div>
+            </div>
+
+            <div class="montants-chart">
+                <h3>Montants par étape</h3>
+                <canvas id="montantsChart"></canvas>
+            </div>
+        </div>
+
+        <div class="fournisseurs-section">
+            <h2>Top Fournisseurs</h2>
+            <table class="fournisseurs-table">
+                <thead>
+                    <tr>
+                        <th>FOURNISSEUR</th>
+                        <th>NB COMMANDES</th>
+                        <th>NB CODES</th>
+                        <th>MONTANT TOTAL</th>
+                        <th>MONTANT MOYEN</th>
+                        <th>PART (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fournisseur in top_fournisseurs %}
+                    <tr>
+                        <td>{{ fournisseur.designation_Fournisseur }}</td>
+                        <td>{{ fournisseur.nb_commandes }}</td>
+                        <td>{{ fournisseur.nb_codes }}</td>
+                        <td>{{ fournisseur.montant_total|floatformat:2 }} MAD</td>
+                        <td>{{ fournisseur.montant_moyen|floatformat:2 }} MAD</td>
+                        <td>
+                            <div class="part-container">
+                                
+                                <span>{{ fournisseur.part }}%</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 2rem; color: #6b7280;">
+                            Aucun fournisseur trouvé pour cette période
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+        </div>
+        <div class="articles-section" style="margin-top: 2rem;">
+            <h2>Top Articles</h2>
+            <table class="fournisseurs-table">
+                <thead>
+                    <tr>
+                        <th>CODE</th>
+                        <th>DÉSIGNATION</th>
+                        <th>FAMILLE</th>
+                        <th style="text-align: right;">QUANTITÉ</th>
+                        <th style="text-align: right;">MONTANT TOTAL</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in top_article %}
+                    <tr>
+                        <td>{{ item.article__code_article }}</td>
+                        <td>{{ item.article__designation }}</td>
+                        <td>{{ item.article__famille }}</td>
+                        <td style="text-align: right; font-weight: bold;">{{ item.total_quantite }}</td>
+                        <td style="text-align: right; color: #111827; font-weight: bold;">
+                            {{ item.total_montant|floatformat:2 }} MAD
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 2rem; color: #6b7280;">
+                            Aucun article trouvé pour cette période
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Graphique Pipeline
+    const ctxPipeline = document.getElementById('pipelineChart').getContext('2d');
+    new Chart(ctxPipeline, {
+        type: 'bar',
+        data: {
+            labels: ['ISE', 'DA', 'AO', 'Commandes'],
+            datasets: [{
+                data: [{{ ise_count|default:0 }}, {{ da_count|default:0 }}, {{ ao_count|default:0 }}, {{ commandes_count|default:0 }}],
+                backgroundColor: ['#4ade80', '#fb923c', '#a78bfa', '#60a5fa']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { 
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.parsed.y + ' documents';
+                        }
+                    }
+                }
+            },
+            scales: { 
+                y: { 
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                } 
+            }
+        }
+    });
+
+    // Graphique Montants
+    const ctxMontants = document.getElementById('montantsChart').getContext('2d');
+    new Chart(ctxMontants, {
+        type: 'bar',
+        data: {
+            labels: ['ISE', 'DA', 'Commandes'],
+            datasets: [{
+                label: 'Montant (M MAD)',
+                // On s'assure que les données sont brutes ici (ex: 2500000)
+                data: [{{ ise_montant|default:0 }}, {{ da_montant|default:0 }}, {{ commandes_montant|default:0 }}],
+                backgroundColor: ['#4ade80', '#fb923c', '#60a5fa']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: {
+                padding: { top: 20 } // Un peu d'espace en haut pour ne pas couper le texte
+            },
+            plugins: { 
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let value = context.parsed.y;
+                            // Formatage propre dans l'infobulle aussi
+                            if (value >= 1000000) {
+                                return (value / 1000000).toFixed(2) + ' M MAD';
+                            } else if (value >= 1000) {
+                                return (value / 1000).toFixed(2) + ' k MAD';
+                            }
+                            return value + ' MAD';
+                        }
+                    }
+                }
+            },
+            scales: { 
+                y: { 
+                    beginAtZero: true,
+                    // Cette option empêche d'avoir trop de lignes horizontales
+                    ticks: {
+                        maxTicksLimit: 8, // Maximum 8 lignes sur l'axe Y
+                        callback: function(value) {
+                            // C'EST ICI QUE LA MAGIE OPÈRE
+                            if (value === 0) return '0';
+                            
+                            if (value >= 1000000) {
+                                // On divise par 1 million pour l'affichage
+                                return (value / 1000000).toFixed(1) + ' M'; 
+                            } else if (value >= 1000) {
+                                // Si c'est petit, on affiche en k (milliers)
+                                return (value / 1000).toFixed(0) + ' k';
+                            }
+                            return value;
+                        }
+                    }
+                } 
+            }
+        }
+    });
+</script>
+{% endblock %}

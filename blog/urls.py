@@ -16,4 +16,5 @@ urlpatterns = [
     path('api/update-profile/', views.update_profile, name='update_profile'),
 
     path('import/history/', views.get_import_history, name='import_history'),
+    path('analyses/', views.analyses_view, name='analyses'),
 ]

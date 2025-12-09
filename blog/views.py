@@ -1,13 +1,13 @@
 from django.shortcuts import render, get_object_or_404
 from .DATAtraitement.services import data_service  # Import du singleton
 from .models import ISE, AO, DA, Cde,Article, Appartenir_A_I, Appartenir_A_D, Appartenir_A_A, Commander, Appartenir_P_A
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import pandas as pd
 from decimal import Decimal
 import json
-from django.db.models import Sum
+from django.db.models import Sum, Count, Avg
 
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
@@ -485,3 +485,129 @@ def get_import_history(request):
     } for imp in imports]
     
     return JsonResponse({'success': True, 'data': data})
+def analyses_view(request):
+    # Récupérer les dates du filtre
+    date_debut = request.GET.get('date_debut')
+    date_fin = request.GET.get('date_fin')
+    
+    # Définir des dates par défaut si non spécifiées (30 derniers jours)
+    if not date_debut:
+        date_debut = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
+    if not date_fin:
+        date_fin = datetime.now().strftime('%Y-%m-%d')
+    
+    # Convertir en objets datetime
+    date_debut_obj = datetime.strptime(date_debut, '%Y-%m-%d')
+    date_fin_obj = datetime.strptime(date_fin, '%Y-%m-%d')
+    
+    # ============ PIPELINE DE CONVERSION ============
+    
+    # Compter les ISE dans la période
+    ise_count = Appartenir_A_I.objects.filter(
+        date_ise__range=[date_debut_obj, date_fin_obj]
+    ).values('ise').distinct().count()
+    
+    # Montant total ISE
+    ise_montant = Appartenir_A_I.objects.filter(
+        date_ise__range=[date_debut_obj, date_fin_obj]
+    ).aggregate(total=Sum('montant_ise'))['total'] or 0
+    
+    # Compter les DA dans la période
+    da_count = Appartenir_A_D.objects.filter(
+        date_DA__range=[date_debut_obj, date_fin_obj]
+    ).values('da').distinct().count()
+    
+    # Montant total DA
+    da_montant = Appartenir_A_D.objects.filter(
+        date_DA__range=[date_debut_obj, date_fin_obj]
+    ).aggregate(total=Sum('montant_DA'))['total'] or 0
+    
+    # Compter les AO dans la période (via Appartenir_A_A)
+    from .models import Appartenir_A_A
+    ao_count = Appartenir_A_A.objects.filter(
+        date_AO__range=[date_debut_obj, date_fin_obj]
+    ).values('ao').distinct().count()
+    print(ao_count)
+    
+    # Compter les Commandes dans la période
+    commandes_count = Commander.objects.filter(
+        date_Cde__range=[date_debut_obj, date_fin_obj]
+    ).values('cde').distinct().count()
+    
+    # Montant total Commandes
+    commandes_montant = Commander.objects.filter(
+        date_Cde__range=[date_debut_obj, date_fin_obj]
+    ).aggregate(total=Sum('montant_Cde'))['total'] or 0
+    
+    # ============ CALCUL DES TAUX DE CONVERSION ============
+    
+    
+    
+    # ============ BUDGET ET ÉCART ============
+    
+    budget_ise = ise_montant
+    montant_commandes = commandes_montant
+    ecart = montant_commandes - budget_ise
+    ecart_pourcentage = round((ecart / budget_ise * 100) if budget_ise > 0 else 0, 1)
+    
+    # ============ TOP FOURNISSEURS ============
+    
+    top_fournisseurs = Commander.objects.filter(
+        date_Cde__range=[date_debut_obj, date_fin_obj]
+    ).values(
+        'fournisseur__code_fournisseur',
+        'fournisseur__designation_Fournisseur'
+    ).annotate(
+        nb_commandes=Count('cde', distinct=True),
+        nb_codes=Count('article__code_article', distinct=True),
+        montant_total=Sum('montant_Cde'),
+        montant_moyen=Avg('montant_Cde')
+    ).order_by('-montant_total')[:5]
+    
+    # Calculer les parts en pourcentage
+    total_montant = sum([f['montant_total'] for f in top_fournisseurs])
+    for f in top_fournisseurs:
+        f['part'] = round((f['montant_total'] / total_montant * 100) if total_montant > 0 else 0, 1)
+        f['designation_Fournisseur'] = f['fournisseur__designation_Fournisseur']
+    top_article = Appartenir_A_I.objects.filter(
+        date_ise__range=[date_debut_obj, date_fin_obj]
+    ).values(
+        # 1. On groupe par ces champs (ce sont tes colonnes de texte)
+        # Note : utilise les double underscores '__' pour accéder aux champs de l'Article
+        'article__code_article',   # Adapte le nom si c'est juste 'code'
+        'article__designation_article',
+        'article__famille'
+    ).annotate(
+        # 2. On calcule les sommes pour chaque groupe
+        total_quantite=Sum('quantite_ise'),  # Adapte le nom du champ quantité dans Appartenir_A_I
+        total_montant=Sum('montant_ise')     # Adapte le nom du champ montant
+    ).order_by('-quantite_ise')[:5]
+    # ============ CONTEXT ============
+    
+    context = {
+        'date_debut': date_debut,
+        'date_fin': date_fin,
+        
+        # Pipeline
+        'ise_count': ise_count,
+        'ise_montant': ise_montant / 1000000,  # Conversion en millions
+        'da_count': da_count,
+        'da_montant': da_montant / 1000000,
+        'ao_count': ao_count,
+        'commandes_count': commandes_count,
+        'commandes_montant': commandes_montant / 1000000,
+        
+        
+        
+        # Budget
+        'budget_ise': budget_ise,
+        'montant_commandes': montant_commandes,
+        'ecart': ecart,
+        'ecart_pourcentage': ecart_pourcentage,
+        
+        # Fournisseurs
+        'top_fournisseurs': top_fournisseurs,
+        'top_article': top_article,
+    }
+    
+    return render(request, 'blog/analyses.html', context)
