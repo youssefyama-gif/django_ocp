@@ -74,6 +74,7 @@ def process_ise_data(fichier):
                 Appartenir_A_I.objects.get_or_create(
                     article=article_obj,
                     ise=ise_obj,
+                    da=da_obj,
                     defaults={
                         "montant_ise": row["Montant ISE_y"],
                         "date_ise": row['Date ISE'],

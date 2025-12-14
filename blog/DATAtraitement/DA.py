@@ -35,6 +35,7 @@ def process_da_data(fichier):
                 id_ao = str(row["AO_y"]).strip() if pd.notna(row["AO_y"]) else None
 
                 ao_obj = None
+                ise_obj = None
                 if id_ao and id_ao not in ['', 'nan', 'None', 'N/A']:
                     ao_obj, _ = AO.objects.get_or_create(id_AO=id_ao)
 
@@ -46,7 +47,12 @@ def process_da_data(fichier):
                 famille_obj, _ = Famille.objects.get_or_create(
                     designation_famille=row["SF_y"]
                 )
+                id_ise = str(row['ID ISE']).strip() if pd.notna(row['ID ISE']) else None
 
+                # Ligne 56-58 - MODIFIER :
+                if id_ise and id_ise not in ['', 'nan', 'None', 'N/A']:
+                    ise_obj, _ = ISE.objects.get_or_create(id_ise=id_ise)
+                    
                 article_obj, _ = Article.objects.get_or_create(
                     code_article=row["CODE"],
                     defaults={
@@ -73,9 +79,11 @@ def process_da_data(fichier):
                     article=article_obj
                 )
                 
+                
                 Appartenir_A_D.objects.get_or_create(
                     article=article_obj,
                     da=da_obj,
+                    ise=ise_obj,
                     defaults={
                         "montant_DA": row["Montant"],
                         "date_DA": row['Date DA'],

@@ -96,6 +96,8 @@ class Fournisseur(models.Model):
 class Appartenir_A_I(models.Model):
     article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name="article")
     ise = models.ForeignKey(ISE, on_delete=models.CASCADE, related_name="ISE")
+    da = models.ForeignKey(DA, on_delete=models.CASCADE, related_name="demande_achat_ise", 
+                          null=True, blank=True)
     montant_ise = models.DecimalField(max_digits=10, decimal_places=2)
     date_ise = models.DateField()
     quantite_ise = models.DecimalField(max_digits=10, decimal_places=2)
@@ -108,7 +110,9 @@ class Appartenir_A_I(models.Model):
 # 🔗 RELATION ARTICLE - DA
 class Appartenir_A_D(models.Model):
     article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name="article1")
-    da = models.ForeignKey(DA, on_delete=models.CASCADE, related_name="demande_achat1")
+    da = models.ForeignKey(DA, on_delete=models.CASCADE, related_name="demande_achat1", 
+                          null=True, blank=True)
+    ise = models.ForeignKey(ISE, on_delete=models.CASCADE, related_name="ISE_da")
     montant_DA = models.DecimalField(max_digits=10, decimal_places=2)
     date_DA = models.DateField()
     quantite_DA = models.DecimalField(max_digits=10, decimal_places=2)

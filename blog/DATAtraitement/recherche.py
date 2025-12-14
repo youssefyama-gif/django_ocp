@@ -74,83 +74,80 @@ def rechercher_da(code_da):
         da_obj = DA.objects.filter(id_DA=code_da).first()
         
         if not da_obj:
-            print(f" Aucun DA trouvé avec le code: {code_da}")
+            print(f"❌ Aucun DA trouvé avec le code: {code_da}")
             return None
         
         relations_da = Appartenir_A_D.objects.filter(da=da_obj).select_related(
-            'article', 'article__famille'
+            'article', 'article__famille', 'ise'
         )
         
         if not relations_da.exists():
-            print(f" DA {code_da} trouvé mais aucun article associé")
+            print(f"⚠️ DA {code_da} trouvé mais aucun article associé")
             return None
         
         data = []
+        cache_ises = {}
         
         for rel_da in relations_da:
             article = rel_da.article
+            code_art = article.code_article
+
+            if code_art not in cache_ises:
+                tous_les_ises = list(Appartenir_A_D.objects.filter(
+                    article=article,
+                    da=da_obj
+                ).select_related('ise', 'da').order_by('id'))
+                cache_ises[code_art] = tous_les_ises
             
-            # Récupérer TOUS les ISE pour cet article
-            tous_les_ises = list(Appartenir_A_I.objects.filter(article=article).select_related('ise').order_by('id'))
+            ises_disponibles = cache_ises[code_art]
+            
+            rel_ise = None
+            if len(ises_disponibles) > 0:
+                rel_ise = ises_disponibles.pop(0)
+            else:
+                rel_ise = None
+            
+            # ✅ Récupérer les infos ISE depuis Appartenir_A_I
+            rel_ise_info = None
+            if rel_ise and rel_ise.ise:
+                rel_ise_info = Appartenir_A_I.objects.filter(
+                    article=article,
+                    ise=rel_ise.ise
+                ).select_related('ise').first()
             
             # Chercher AO, CMD, Plant (une seule fois)
             rel_ao = Appartenir_A_A.objects.filter(article=article).select_related('ao').first()
             rel_cmd = Commander.objects.filter(article=article).select_related('cde', 'fournisseur').first()
             rel_plant = Appartenir_P_A.objects.filter(article=article).select_related('plant').first()
             
-            # 🟢 CRÉER UNE LIGNE POUR CHAQUE ISE
-            if tous_les_ises:
-                for rel_ise in tous_les_ises:
-                    data.append({
-                        'Code': article.code_article,
-                        'Description': article.designation_article,
-                        
-                        'ID ISE': rel_ise.ise.id_ise if rel_ise.ise else 'N/A',
-                        'Date ISE': rel_ise.date_ise,
-                        'Qté ISE': rel_ise.quantite_ise,
-                        'Mnt ISE': rel_ise.montant_ise,
-                        
-                        'DA': da_obj.id_DA,
-                        'Date DA': rel_da.date_DA,
-                        'Qté DA': rel_da.quantite_DA,
-                        'Mnt DA': rel_da.montant_DA,
-                        'AO': rel_ao.ao.id_AO if rel_ao and rel_ao.ao else 'N/A',
-                        'Date AO': rel_ao.date_AO if rel_ao else None,
-                        'CMD': rel_cmd.cde.id_Cde if rel_cmd and rel_cmd.cde else 'N/A',
-                        'Date CMD': rel_cmd.date_Cde if rel_cmd else None,
-                        'Qté CMD': rel_cmd.quantite_Cde if rel_cmd else None,
-                        'Mnt CMD': rel_cmd.montant_Cde if rel_cmd else None,
-                        'Fournisseur': rel_cmd.fournisseur.designation_Fournisseur if rel_cmd and rel_cmd.fournisseur else 'N/A',
-                        'Plant': rel_plant.plant.code_plant if rel_plant and rel_plant.plant else 'N/A',
-                        'Désignation Plant': rel_plant.plant.designation_plant if rel_plant and rel_plant.plant else 'N/A'
-                    })
-            else:
-                # Si aucun ISE, créer quand même une ligne
-                data.append({
-                    'Code': article.code_article,
-                    'Description': article.designation_article,
-                    'ID ISE': 'N/A',
-                    'Date ISE': None,
-                    'Qté ISE': None,
-                    'Mnt ISE': None,
-                    'DA': da_obj.id_DA,
-                    'Date DA': rel_da.date_DA,
-                    'Qté DA': rel_da.quantite_DA,
-                    'Mnt DA': rel_da.montant_DA,
-                    'AO': rel_ao.ao.id_AO if rel_ao and rel_ao.ao else 'N/A',
-                    'Date AO': rel_ao.date_AO if rel_ao else None,
-                    'CMD': rel_cmd.cde.id_Cde if rel_cmd and rel_cmd.cde else 'N/A',
-                    'Date CMD': rel_cmd.date_Cde if rel_cmd else None,
-                    'Qté CMD': rel_cmd.quantite_Cde if rel_cmd else None,
-                    'Mnt CMD': rel_cmd.montant_Cde if rel_cmd else None,
-                    'Fournisseur': rel_cmd.fournisseur.designation_Fournisseur if rel_cmd and rel_cmd.fournisseur else 'N/A',
-                    'Plant': rel_plant.plant.code_plant if rel_plant and rel_plant.plant else 'N/A',
-                    'Désignation Plant': rel_plant.plant.designation_plant if rel_plant and rel_plant.plant else 'N/A'
-                })
+            data.append({
+                'Code': article.code_article,
+                'Description': article.designation_article,
+                
+                # ✅ Utiliser rel_ise_info (depuis Appartenir_A_I) pour les détails ISE
+                'ID ISE': rel_ise.ise.id_ise if rel_ise and rel_ise.ise else 'N/A',
+                'Date ISE': rel_ise_info.date_ise if rel_ise_info else None,
+                'Qté ISE': rel_ise_info.quantite_ise if rel_ise_info else None,
+                'Mnt ISE': rel_ise_info.montant_ise if rel_ise_info else None,
+                
+                'DA': da_obj.id_DA,
+                'Date DA': rel_da.date_DA,
+                'Qté DA': rel_da.quantite_DA,
+                'Mnt DA': rel_da.montant_DA,
+                'AO': rel_ao.ao.id_AO if rel_ao and rel_ao.ao else 'N/A',
+                'Date AO': rel_ao.date_AO if rel_ao else None,
+                'CMD': rel_cmd.cde.id_Cde if rel_cmd and rel_cmd.cde else 'N/A',
+                'Date CMD': rel_cmd.date_Cde if rel_cmd else None,
+                'Qté CMD': rel_cmd.quantite_Cde if rel_cmd else None,
+                'Mnt CMD': rel_cmd.montant_Cde if rel_cmd else None,
+                'Fournisseur': rel_cmd.fournisseur.designation_Fournisseur if rel_cmd and rel_cmd.fournisseur else 'N/A',
+                'Plant': rel_plant.plant.code_plant if rel_plant and rel_plant.plant else 'N/A',
+                'Désignation Plant': rel_plant.plant.designation_plant if rel_plant and rel_plant.plant else 'N/A'
+            })
         
         return pd.DataFrame(data)
     except Exception as e:
-        print(f" Erreur lors de la recherche DA: {e}")
+        print(f"💥 Erreur lors de la recherche DA: {e}")
         return None
 
 
