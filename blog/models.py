@@ -102,6 +102,9 @@ class Appartenir_A_I(models.Model):
     date_ise = models.DateField()
     quantite_ise = models.DecimalField(max_digits=10, decimal_places=2)
     destination = models.CharField(max_length=200)
+    
+    class Meta:
+        unique_together = ('ise', 'article')  # Empêche les doublons
 
     def __str__(self):
         return f"{self.article} - ISE {self.ise} ({self.date_ise}) - {self.montant_ise} - {self.quantite_ise} - {self.destination}"
@@ -136,6 +139,7 @@ class Appartenir_A_A(models.Model):
 class Commander(models.Model):
     article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name="article3")
     cde = models.ForeignKey(Cde, on_delete=models.CASCADE, related_name="commande")
+    ise = models.ForeignKey(ISE, on_delete=models.CASCADE, related_name="ISE_cmd")
     fournisseur = models.ForeignKey(Fournisseur, on_delete=models.CASCADE, related_name="fournisseur")
     montant_Cde = models.DecimalField(max_digits=10, decimal_places=2)
     date_Cde = models.DateField()

@@ -216,9 +216,8 @@ def rechercher_ao(code_ao):
 
 def rechercher_cmd(code_cmd):
     """
-    Recherche CMD avec logique de "CONSOMMATION".
-    - 1ère ligne de commande -> prend le 1er ISE et l'enlève de la liste.
-    - 2ème ligne de commande -> prend le prochain ISE disponible.
+    Recherche toutes les informations liées à un code CMD.
+    Crée une ligne pour chaque combinaison Article-ISE.
     """
     try:
         cmd_obj = Cde.objects.filter(id_Cde=code_cmd).first()
@@ -227,9 +226,8 @@ def rechercher_cmd(code_cmd):
             print(f" Aucune commande trouvée avec le code: {code_cmd}")
             return None
         
-        # Récupérer toutes les relations Article-CMD pour ce code CMD
         relations_cmd = Commander.objects.filter(cde=cmd_obj).select_related(
-            'article', 'article__famille', 'fournisseur'
+            'article', 'article__famille', 'fournisseur', 'ise'
         )
         
         if not relations_cmd.exists():
@@ -237,37 +235,36 @@ def rechercher_cmd(code_cmd):
             return None
         
         data = []
-        
-        # 🟢 CRÉATION DU STOCK (CACHE)
-        # Ce dictionnaire va retenir quels ISE sont encore disponibles pour chaque article
-        # Clé = Code Article, Valeur = Liste des objets ISE
         cache_ises = {}
-
+        
         for rel_cmd in relations_cmd:
             article = rel_cmd.article
             code_art = article.code_article
 
-            # 1. Si on n'a pas encore chargé les ISE pour cet article, on le fait maintenant
             if code_art not in cache_ises:
-                # On récupère TOUS les ISE liés à cet article et on les met dans une liste
-                tous_les_ises = list(Appartenir_A_I.objects.filter(article=article).select_related('ise').order_by('id'))
+                tous_les_ises = list(Commander.objects.filter(
+                    article=article,
+                    cde=cmd_obj
+                ).select_related('ise', 'cde').order_by('id'))
                 cache_ises[code_art] = tous_les_ises
-
-            # 2. On récupère la liste des ISE restants pour cet article
+            
             ises_disponibles = cache_ises[code_art]
             
-            # 3. LOGIQUE DE CONSOMMATION (Le cœur de ta demande)
             rel_ise = None
             if len(ises_disponibles) > 0:
-                # .pop(0) prend le PREMIER élément de la liste et le SUPPRIME de la liste
-                # Donc au prochain tour de boucle, cet ISE ne sera plus là !
                 rel_ise = ises_disponibles.pop(0)
             else:
-                # Plus d'ISE disponible (cas où il y a plus de lignes de commande que d'ISE)
                 rel_ise = None
-
-            # ---------------------------------------
-            # Le reste (DA, AO, Plant) reste classique (.first)
+            
+            # ✅ Récupérer les infos ISE depuis Appartenir_A_I
+            rel_ise_info = None
+            if rel_ise and rel_ise.ise:
+                rel_ise_info = Appartenir_A_I.objects.filter(
+                    article=article,
+                    ise=rel_ise.ise
+                ).select_related('ise').first()
+            
+            # Chercher DA, AO, Plant (une seule fois)
             rel_da = Appartenir_A_D.objects.filter(article=article).select_related('da').first()
             rel_ao = Appartenir_A_A.objects.filter(article=article).select_related('ao').first()
             rel_plant = Appartenir_P_A.objects.filter(article=article).select_related('plant').first()
@@ -276,11 +273,11 @@ def rechercher_cmd(code_cmd):
                 'Code': article.code_article,
                 'Description': article.designation_article,
                 
-                # Ici on utilise l'ISE qu'on vient de "tirer" de la liste
-                'ID ISE': rel_ise.ise.id_ise if rel_ise else 'N/A',
-                'Date ISE': rel_ise.date_ise if rel_ise else None,
-                'Qté ISE': rel_ise.quantite_ise if rel_ise else None,
-                'Mnt ISE': rel_ise.montant_ise if rel_ise else None,
+                # ✅ Utiliser rel_ise_info (depuis Appartenir_A_I) pour les détails ISE
+                'ID ISE': rel_ise.ise.id_ise if rel_ise and rel_ise.ise else 'N/A',
+                'Date ISE': rel_ise_info.date_ise if rel_ise_info else None,
+                'Qté ISE': rel_ise_info.quantite_ise if rel_ise_info else None,
+                'Mnt ISE': rel_ise_info.montant_ise if rel_ise_info else None,
                 
                 'DA': rel_da.da.id_DA if rel_da and rel_da.da else 'N/A',
                 'Date DA': rel_da.date_DA if rel_da else None,
@@ -298,9 +295,8 @@ def rechercher_cmd(code_cmd):
             })
         
         return pd.DataFrame(data)
-        
     except Exception as e:
-        print(f"❌ Erreur lors de la recherche CMD: {e}")
+        print(f"💥 Erreur lors de la recherche CMD: {e}")
         return None
 
 def rechercher_interactif():

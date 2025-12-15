@@ -5,7 +5,6 @@ from blog.models import Plant, Famille, Article, AO, ISE, DA, Appartenir_P_A, Ap
 def process_ise_data(fichier):
     nb_lignes = 0
     nb_erreurs = 0
-    erreurs_detail = []
     
     try:
         df_besoin_1 = pd.read_excel(fichier, sheet_name=0)
@@ -71,23 +70,27 @@ def process_ise_data(fichier):
                     article=article_obj
                 )
 
-                Appartenir_A_I.objects.get_or_create(
+                # ✅ CORRECTION : da ne doit PAS être dans les critères de recherche
+                rel_ise, created = Appartenir_A_I.objects.get_or_create(
                     article=article_obj,
                     ise=ise_obj,
-                    da=da_obj,
                     defaults={
+                        "da": da_obj,  # ← Maintenant dans defaults
                         "montant_ise": row["Montant ISE_y"],
                         "date_ise": row['Date ISE'],
                         "quantite_ise": row["Qte ISE"],
                         "destination": row["Déstination"]
                     }
                 )
+                
+                # ✅ Mise à jour du DA si l'enregistrement existe déjà
+                if not created and da_obj is not None and rel_ise.da != da_obj:
+                    rel_ise.da = da_obj
+                    rel_ise.save()
 
             except Exception as e:
                 nb_erreurs += 1
-                
 
-        # ✅ ENREGISTRER L'HISTORIQUE
         ImportHistory.objects.create(
             type_fichier='ISE',
             nom_fichier=fichier.name,
@@ -96,7 +99,7 @@ def process_ise_data(fichier):
             statut='SUCCESS' if nb_erreurs == 0 else ('PARTIAL' if nb_erreurs < nb_lignes else 'ERROR'),
         )
         
-        print(f" Import ISE terminé : {nb_lignes} lignes, {nb_erreurs} erreurs")
+        print(f"✓ Import ISE terminé : {nb_lignes} lignes, {nb_erreurs} erreurs")
 
     except Exception as e:
         ImportHistory.objects.create(
@@ -105,6 +108,5 @@ def process_ise_data(fichier):
             nb_lignes_traitees=nb_lignes,
             nb_erreurs=nb_erreurs + 1,
             statut='ERROR',
-            
         )
-        print(f" Erreur critique ISE: {e}")
+        print(f"✗ Erreur critique ISE: {e}")
