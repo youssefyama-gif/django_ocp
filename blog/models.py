@@ -93,60 +93,40 @@ class Fournisseur(models.Model):
 
 
 # 🔗 RELATION ARTICLE - ISE
-class Appartenir_A_I(models.Model):
+class Appartenir(models.Model):
     article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name="article")
     ise = models.ForeignKey(ISE, on_delete=models.CASCADE, related_name="ISE")
     da = models.ForeignKey(DA, on_delete=models.CASCADE, related_name="demande_achat_ise", 
                           null=True, blank=True)
+    ao = models.ForeignKey(AO, on_delete=models.CASCADE, related_name="appel_offre_ise", 
+                          null=True, blank=True)
+    cde = models.ForeignKey(Cde, on_delete=models.CASCADE, related_name="commande_ise", 
+                          null=True, blank=True)
     montant_ise = models.DecimalField(max_digits=10, decimal_places=2)
     date_ise = models.DateField()
-    quantite_ise = models.DecimalField(max_digits=10, decimal_places=2)
+    quantite_ise = models.DecimalField(max_digits=10, decimal_places=2, 
+                          null=True, blank=True)
+    montant_DA = models.DecimalField(max_digits=10, decimal_places=2, 
+                          null=True, blank=True)
+    date_DA = models.DateField( 
+                          null=True, blank=True)
+    quantite_DA = models.DecimalField(max_digits=10, decimal_places=2, 
+                          null=True, blank=True)
+    date_AO = models.DateField(
+                          null=True, blank=True)
+    fournisseur = models.ForeignKey(Fournisseur, on_delete=models.CASCADE, related_name="fournisseur", 
+                          null=True, blank=True)
+    montant_Cde = models.DecimalField(max_digits=10, decimal_places=2, 
+                          null=True, blank=True)
+    date_Cde = models.DateField(null=True, blank=True)
+    quantite_Cde = models.DecimalField(max_digits=10, decimal_places=2, 
+                          null=True, blank=True)
     destination = models.CharField(max_length=200)
     
-    class Meta:
-        unique_together = ('ise', 'article')  # Empêche les doublons
-
     def __str__(self):
         return f"{self.article} - ISE {self.ise} ({self.date_ise}) - {self.montant_ise} - {self.quantite_ise} - {self.destination}"
 
 
-# 🔗 RELATION ARTICLE - DA
-class Appartenir_A_D(models.Model):
-    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name="article1")
-    da = models.ForeignKey(DA, on_delete=models.CASCADE, related_name="demande_achat1", 
-                          null=True, blank=True)
-    ise = models.ForeignKey(ISE, on_delete=models.CASCADE, related_name="ISE_da")
-    montant_DA = models.DecimalField(max_digits=10, decimal_places=2)
-    date_DA = models.DateField()
-    quantite_DA = models.DecimalField(max_digits=10, decimal_places=2)
-    destination = models.CharField(max_length=200)
-
-    def __str__(self):
-        return f"{self.article} -  {self.da} ({self.date_DA}) - {self.montant_DA} - {self.quantite_DA} - {self.destination}"
-
-
-# 🔗 RELATION ARTICLE - AO
-class Appartenir_A_A(models.Model):
-    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name="article2")
-    ao = models.ForeignKey(AO, on_delete=models.CASCADE, related_name="appel_offre2")
-    date_AO = models.DateField()
-
-    def __str__(self):
-        return f"{self.article} - {self.ao} ({self.date_AO}) "
-
-
-# 🔗 RELATION COMMANDE - ARTICLE - FOURNISSEUR
-class Commander(models.Model):
-    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name="article3")
-    cde = models.ForeignKey(Cde, on_delete=models.CASCADE, related_name="commande")
-    ise = models.ForeignKey(ISE, on_delete=models.CASCADE, related_name="ISE_cmd")
-    fournisseur = models.ForeignKey(Fournisseur, on_delete=models.CASCADE, related_name="fournisseur")
-    montant_Cde = models.DecimalField(max_digits=10, decimal_places=2)
-    date_Cde = models.DateField()
-    quantite_Cde = models.DecimalField(max_digits=10, decimal_places=2)
-
-    def __str__(self):
-        return f"{self.article} - {self.cde} ({self.date_Cde}) - {self.montant_Cde} - {self.quantite_Cde} - {self.fournisseur}"
 
 class ImportHistory(models.Model):
     TYPE_CHOICES = [

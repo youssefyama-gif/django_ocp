@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from .DATAtraitement.services import data_service  # Import du singleton
-from .models import ISE, AO, DA, Cde,Article, Appartenir_A_I, Appartenir_A_D, Appartenir_A_A, Commander, Appartenir_P_A
+from .models import *
 from datetime import datetime, timedelta
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -103,9 +103,9 @@ def dashboard_view(request):
     total_cmd = Cde.objects.count()
 
     # Récupérer les ISE avec leur date la plus récente, triées par date décroissante
-    ises_with_dates = Appartenir_A_I.objects.values('ise').annotate(
+    ises_with_dates = Appartenir.objects.values('ise').annotate(
         date_max=Max('date_ise')
-    ).order_by('-date_max')[:10]
+    ).order_by('-date_max')[:5]
     
     # Extraire les IDs des ISE
     ise_ids = [item['ise'] for item in ises_with_dates]
@@ -120,7 +120,7 @@ def dashboard_view(request):
 
     for ise_obj in recent_ises:
         # Récupérer tous les articles de cette ISE
-        articles_ise = Appartenir_A_I.objects.filter(ise=ise_obj).select_related('article')
+        articles_ise = Appartenir.objects.filter(ise=ise_obj).select_related('article')
         
         if not articles_ise.exists():
             continue
@@ -144,19 +144,19 @@ def dashboard_view(request):
         statut = "En attente"
         
         # Récupérer les IDs des articles de cette ISE
-        article_ids = [rel.article.id for rel in articles_ise]
+       
         
         # Vérifier si AU MOINS UN article a une COMMANDE
-        has_commande = Commander.objects.filter(
-            article_id__in=article_ids
+        has_commande = Appartenir.objects.filter(
+            ise=ise_obj
         ).exists()
         
         if has_commande:
             statut = "Validée"
         else:
             # Vérifier si AU MOINS UN article a une DA
-            has_da = Appartenir_A_D.objects.filter(
-                article_id__in=article_ids
+            has_da = Appartenir.objects.filter(
+                ise=ise_obj
             ).exists()
             
             if has_da:
@@ -229,14 +229,14 @@ def detail_flux(request, id_flux, id_ise, id_da, id_ao, id_cmd):
     udm = 'N/A'
     
     if id_ise and id_ise not in ['0', 'N/A']:
-        objet_ise = Appartenir_A_I.objects.filter(
+        objet_ise = Appartenir.objects.filter(
             ise__id_ise=id_ise,
             article__code_article=id_flux
         ).select_related('article').first()
         
         if objet_ise:
             date_ise = objet_ise.date_ise 
-            montant_ise = objet_ise.montant_ise * objet_ise.quantite_ise
+            montant_ise = objet_ise.montant_ise 
             destination_val = objet_ise.destination
             udm_val = article_obj.udm
 
@@ -245,20 +245,20 @@ def detail_flux(request, id_flux, id_ise, id_da, id_ao, id_cmd):
     montant_da = 0
     
     if id_da and id_da not in ['0', 'N/A']:
-        objet_da = Appartenir_A_D.objects.filter(
+        objet_da = Appartenir.objects.filter(
             da__id_DA=id_da,
             article__code_article=id_flux
         ).select_related('da').first()
         
         if objet_da:
             date_da = objet_da.date_DA 
-            montant_da = objet_da.montant_DA * objet_da.quantite_DA if hasattr(objet_da, 'montant_DA') else 0
+            montant_da = objet_da.montant_DA 
 
     # --- 3. GESTION DE L'AO ---
     date_ao = None
     
     if id_ao and id_ao not in ['0', 'N/A']:
-        objet_ao = Appartenir_A_A.objects.filter(
+        objet_ao = Appartenir.objects.filter(
             ao__id_AO=id_ao,
             article__code_article=id_flux
         ).select_related('ao').first()
@@ -272,14 +272,14 @@ def detail_flux(request, id_flux, id_ise, id_da, id_ao, id_cmd):
     fournisseur_nom = '-'
 
     if id_cmd and id_cmd not in ['0', 'N/A']:
-        objet_cmd = Commander.objects.filter(
+        objet_cmd = Appartenir.objects.filter(
             cde__id_Cde=id_cmd,
             article__code_article=id_flux
         ).select_related('cde', 'fournisseur').first()
 
         if objet_cmd:
             date_cmd = objet_cmd.date_Cde
-            montant_cmd = objet_cmd.montant_Cde * objet_cmd.quantite_Cde
+            montant_cmd = objet_cmd.montant_Cde
             if objet_cmd.fournisseur:
                 fournisseur_nom = objet_cmd.fournisseur.designation_Fournisseur
     code_plant = 'N/A'
@@ -503,39 +503,38 @@ def analyses_view(request):
     # ============ PIPELINE DE CONVERSION ============
     
     # Compter les ISE dans la période
-    ise_count = Appartenir_A_I.objects.filter(
+    ise_count = Appartenir.objects.filter(
         date_ise__range=[date_debut_obj, date_fin_obj]
     ).values('ise').distinct().count()
     
     # Montant total ISE
-    ise_montant = Appartenir_A_I.objects.filter(
+    ise_montant = Appartenir.objects.filter(
         date_ise__range=[date_debut_obj, date_fin_obj]
     ).aggregate(total=Sum('montant_ise'))['total'] or 0
     
     # Compter les DA dans la période
-    da_count = Appartenir_A_D.objects.filter(
+    da_count = Appartenir.objects.filter(
         date_DA__range=[date_debut_obj, date_fin_obj]
     ).values('da').distinct().count()
     
     # Montant total DA
-    da_montant = Appartenir_A_D.objects.filter(
+    da_montant = Appartenir.objects.filter(
         date_DA__range=[date_debut_obj, date_fin_obj]
     ).aggregate(total=Sum('montant_DA'))['total'] or 0
     
-    # Compter les AO dans la période (via Appartenir_A_A)
-    from .models import Appartenir_A_A
-    ao_count = Appartenir_A_A.objects.filter(
+
+    ao_count = Appartenir.objects.filter(
         date_AO__range=[date_debut_obj, date_fin_obj]
     ).values('ao').distinct().count()
     print(ao_count)
     
     # Compter les Commandes dans la période
-    commandes_count = Commander.objects.filter(
+    commandes_count = Appartenir.objects.filter(
         date_Cde__range=[date_debut_obj, date_fin_obj]
     ).values('cde').distinct().count()
     
     # Montant total Commandes
-    commandes_montant = Commander.objects.filter(
+    commandes_montant = Appartenir.objects.filter(
         date_Cde__range=[date_debut_obj, date_fin_obj]
     ).aggregate(total=Sum('montant_Cde'))['total'] or 0
     
@@ -552,7 +551,7 @@ def analyses_view(request):
     
     # ============ TOP FOURNISSEURS ============
     
-    top_fournisseurs = Commander.objects.filter(
+    top_fournisseurs = Appartenir.objects.filter(
         date_Cde__range=[date_debut_obj, date_fin_obj]
     ).values(
         'fournisseur__code_fournisseur',
@@ -569,7 +568,7 @@ def analyses_view(request):
     for f in top_fournisseurs:
         f['part'] = round((f['montant_total'] / total_montant * 100) if total_montant > 0 else 0, 1)
         f['designation_Fournisseur'] = f['fournisseur__designation_Fournisseur']
-    top_article = Appartenir_A_I.objects.filter(
+    top_article = Appartenir.objects.filter(
         date_ise__range=[date_debut_obj, date_fin_obj]
     ).values(
         # 1. On groupe par ces champs (ce sont tes colonnes de texte)
